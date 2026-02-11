@@ -19,6 +19,14 @@ const HomePage = () => {
   const [activeNewsTab, setActiveNewsTab] = useState("announcements");
   const [currentPage, setCurrentPage] = useState(0);
   const [currentEventPage, setCurrentEventPage] = useState(0);
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
+  const [isFaqFullscreen, setIsFaqFullscreen] = useState(false);
+  const [faqMessages, setFaqMessages] = useState([
+    {
+      role: "bot",
+      text: "Hi! I can help you with common questions about the MNHS Document Request System. Choose a question below.",
+    },
+  ]);
   const announcementsPerPage = 3;
   const eventsPerPage = 3;
   
@@ -26,6 +34,96 @@ const HomePage = () => {
  
   const primaryColor = "#0A2463"; // Royal blue
   const accentColor = "#FFC72C";  // Honey yellow
+
+  const faqItems = [
+    {
+      id: 1,
+      question: "Paano mag Request ng Documents sa Malanday National High School?",
+      answer: "Click RequestDocument Button on the header then choose Current Student. After that Fill up the information need.",
+    },
+    {
+      id: 2,
+      question: "Paano mag Login ang Student?",
+      answer: "Click Login Botton. Insert your Email and Birthday of the Student.",
+    },
+    {
+      id: 3,
+      question: "Paano magrequest ng Document yung Alumni?",
+      answer: "Click RequestDocument Button on the header then choose Alumni. After that Fill up the information need.",
+    },
+    {
+      id: 4,
+      question: "Paano malalaman ng Student kung pwede na makuha yung Document Requested?",
+      answer: "Click Login Botton. Insert your Email and Birthday of the Student. Click the Transaction History.",
+    },
+    {
+      id: 5,
+      question: "Paano malalaman ng Alumni kung pwede na makuha yung Document Requested?",
+      answer: "Malanday Registrar will Manually send a notice Alumni Email.",
+    },
+    {
+      id: 6,
+      question: "Paano magChange password yung student?",
+      answer: "Click Login Botton. Insert your Email and Birthday of the Student then go to Profile and Click Change Password Botton.",
+    },
+    {
+      id: 7,
+      question: "Saan ko kukunin yung Requested Document?",
+      answer: "Ground Floor MNHS Center Bldg.",
+    },
+    {
+      id: 8,
+      question: "Ano-ano dadalhin na requirements sa School kapag kinuha na yung Document Requested?",
+      answer: "The Identification Card like National ID, Driver Lincense etc. and the Request Letters.",
+    },
+    {
+      id: 9,
+      question: "Paano kapag gusto ko ulit mag request ng Document (Student)?",
+      answer: "Click Login Botton. Insert your Email and Birthday of the Student. Click Request Document Tab then you can request again.",
+    },
+    {
+      id: 10,
+      question: "Paano kapag gusto ko ulit mag request ng Document (Alumni)?",
+      answer: "Click Request Document Button again on the header then choose Alumni. After that Fill up the information need.",
+    },
+  ];
+
+  useEffect(() => {
+    const updateFaqLayout = () => {
+      setIsFaqFullscreen(window.innerWidth < 1024);
+    };
+
+    updateFaqLayout();
+    window.addEventListener("resize", updateFaqLayout);
+    return () => window.removeEventListener("resize", updateFaqLayout);
+  }, []);
+
+  useEffect(() => {
+    const shouldLockScroll = isFaqOpen && isFaqFullscreen && !isOverlayOpen && !isAnnouncementOverlayOpen;
+    if (shouldLockScroll) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "auto";
+      };
+    }
+  }, [isFaqOpen, isFaqFullscreen, isOverlayOpen, isAnnouncementOverlayOpen]);
+
+  const resetFaq = () => {
+    setFaqMessages([
+      {
+        role: "bot",
+        text: "Hi! I can help you with common questions about the MNHS Document Request System. Choose a question below.",
+      },
+    ]);
+  };
+
+  const handleFaqSelect = (item) => {
+    setFaqMessages((prev) => [
+      ...prev,
+      { role: "user", text: item.question },
+      { role: "bot", text: item.answer },
+    ]);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -1084,6 +1182,151 @@ const HomePage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* FAQ Floating Button + Chatbox */}
+      <div className="fixed z-[60]">
+        {!isFaqOpen && (
+          <button
+            type="button"
+            onClick={() => setIsFaqOpen(true)}
+            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+            style={{ backgroundColor: accentColor }}
+            aria-label="Open FAQs"
+          >
+            <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48702 15.529 3.33826 17.0018C3.42307 17.1486 3.45102 17.3213 3.40644 17.4872L2.5 21.5L6.51279 20.5936C6.67874 20.549 6.85139 20.5769 6.99819 20.6617C8.47098 21.513 10.1786 22 12 22Z"
+                stroke={primaryColor}
+                strokeWidth="2"
+              />
+              <path
+                d="M9.75 9.25C9.75 8.00736 10.7574 7 12 7C13.2426 7 14.25 8.00736 14.25 9.25C14.25 10.1886 13.6756 10.9931 12.8571 11.3304C12.3491 11.5397 12 12.0151 12 12.5645V13"
+                stroke={primaryColor}
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path d="M12 16.5H12.01" stroke={primaryColor} strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+
+        <AnimatePresence>
+          {isFaqOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className={
+                isFaqFullscreen
+                  ? "fixed inset-0 bg-white flex flex-col"
+                  : "fixed bottom-6 right-6 w-[360px] h-[520px] max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+              }
+              style={isFaqFullscreen ? undefined : { border: `1px solid ${primaryColor}20` }}
+              role="dialog"
+              aria-label="FAQs"
+            >
+              <div
+                className="flex items-center justify-between px-3 py-2.5"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-white shadow-sm">
+                    <img
+                      src="/logo%20lang.png"
+                      alt="MNHS"
+                      className="h-6 w-6 object-contain"
+                    />
+                  </span>
+                  <span>FAQs</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {isFaqFullscreen && (
+                    <button
+                      type="button"
+                      onClick={() => setIsFaqOpen(false)}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white/10 hover:bg-white/20 text-white transition"
+                      aria-label="Back"
+                    >
+                      Back
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={resetFaq}
+                    className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white/10 hover:bg-white/20 text-white transition"
+                    aria-label="Reset FAQs"
+                  >
+                    Reset
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsFaqOpen(false)}
+                    className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition"
+                    aria-label="Close FAQs"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className={isFaqFullscreen ? "flex-1 overflow-y-auto" : "flex-1 overflow-y-auto"}>
+                <div className={isFaqFullscreen ? "p-4 space-y-3" : "p-4 space-y-3"}>
+                  {faqMessages.map((msg, idx) => (
+                    <div
+                      key={`${msg.role}-${idx}`}
+                      className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
+                    >
+                      <div
+                        className={
+                          msg.role === "user"
+                            ? "max-w-[85%] rounded-2xl rounded-br-md px-3 py-2 text-white shadow-sm"
+                            : "max-w-[85%] rounded-2xl rounded-bl-md px-3 py-2 bg-gray-100 text-gray-800 shadow-sm"
+                        }
+                        style={msg.role === "user" ? { backgroundColor: primaryColor } : undefined}
+                      >
+                        <div className="text-sm leading-relaxed whitespace-pre-line">{msg.text}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t bg-white">
+                <div className={isFaqFullscreen ? "p-4" : "p-3"}>
+                  <div className={isFaqFullscreen ? "mb-3" : "mb-2"}>
+                    <div className="text-xs font-semibold text-gray-600">Quick questions</div>
+                    <div className={isFaqFullscreen ? "text-xs text-gray-500" : "text-xs text-gray-500"}>
+                      Tap an option to get an instant answer.
+                    </div>
+                  </div>
+
+                  <div className={isFaqFullscreen ? "max-h-[220px] overflow-y-auto" : "max-h-[140px] overflow-y-auto"}>
+                    <div className="flex flex-wrap gap-2">
+                      {faqItems.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleFaqSelect(item)}
+                          className="px-3 py-1.5 rounded-full border bg-white hover:bg-gray-50 transition text-xs text-gray-800"
+                          style={{ borderColor: `${primaryColor}25` }}
+                        >
+                          {item.question}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <Footer />
     </div>
